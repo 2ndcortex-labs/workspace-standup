@@ -1,0 +1,172 @@
+# Standup — the AIR's instructions (removed when done)
+
+You are the AIR of this new workspace. Your identity is the workspace's, not
+this folder's. The Operator is the human who made the folders and ran the
+script; they answer your questions. The checker is the **Standup Conductor**
+on the conducting seat, and it speaks in the **Workspace Standup** group. You
+execute; the Standup Conductor certifies. You never certify yourself.
+
+Three standing rules for this whole file:
+
+- Never open, read or print `nostr.key`, `agent.env` or `agent.local.env`.
+  Point tools at them by path and let the tool read them.
+- Look first: nothing overwrites a key already in an agent's home. A key the
+  Operator placed there is used as it stands.
+- The Operator's token is asked for once and lives only in git's credential
+  store. This file names the repository and the ask, never the token.
+
+Every path below is relative to the workspace root — the folder you were
+launched from is `nethub/nexus/`, so `cd` back up to the root first.
+
+Work the thirteen steps in order. Each one ends with its check. Do not move
+on until the check passes.
+
+1. **The token and the owner name.** Ask the Operator for a fine-grained
+   GitHub token, read-only on the `standup-guy` repository, and for their
+   GitHub owner name (the account or organisation that holds it). Set the
+   credential store first — `git config --global credential.helper osxkeychain`
+   (or `store` where the keychain helper is unavailable) — so git keeps the
+   token and you never hold it. Never echo the token, never write it to a
+   file, never put it in a URL you print. Check: the Operator has given you
+   an owner name and git has a credential helper configured.
+
+2. **Standup Guy, once, into his permanent home.** Clone him straight into
+   the home he keeps forever:
+   `git clone https://github.com/<owner>/standup-guy nethub/standup-guy`
+   (git will ask for the token; the helper stores it). Nothing of him is
+   cloned anywhere else, moved or deleted afterwards: that clone is his home
+   in this workspace, and his updates arrive later by `git pull` in it.
+   Check: `nethub/standup-guy/CLAUDE.md` exists.
+
+3. **Buzz.app, installed and verified.** Source: the releases of
+   `github.com/block/buzz` — `Buzz_<version>_aarch64.dmg` on Apple Silicon,
+   `Buzz_<version>_x64.dmg` on Intel — or the Homebrew cask,
+   `brew install --cask block-buzz`, which installs the same app. Verify the
+   installed copy before trusting it: `codesign --verify --deep --strict
+   /Applications/Buzz.app` and `spctl --assess --type execute
+   /Applications/Buzz.app` must both pass; the app is notarized under
+   Developer ID team `EYF346PHUG` with bundle id `xyz.block.buzz.app`. The
+   bundled binaries you need — `buzz`, `buzz-acp`, `buzz-agent` and
+   `git-credential-nostr` — live in `/Applications/Buzz.app/Contents/MacOS/`.
+   Details, including why there is no checksum file, are in
+   `buzz-app-install.md` beside this template in Standup Guy's `standup/`
+   folder. Check: both verification commands pass and the four binaries are
+   present.
+
+4. **nethub, fetched around him.** `nethub/` is not empty, so never clone
+   into it — init in place and fetch. The relay serves repositories at
+   `<relay>/git/<owner pubkey>/<repo>`, and the credential helper is the one
+   Buzz.app ships. From the workspace root:
+
+```
+cd nethub
+git init
+git config credential.helper /Applications/Buzz.app/Contents/MacOS/git-credential-nostr
+git config nostr.keyfile "$PWD/standup-guy/nostr.key"
+git remote add origin https://blockbuzzmain-production-28a2.up.railway.app/git/acb8de002a0fb8fa6c978de87bdec78f2a9d943973d49534e51bbb8a13500c55/nethub
+git fetch origin
+git checkout -b main origin/main
+```
+
+   The `nostr.keyfile` line points git at Standup Guy's key by path; you do
+   not open it. The checkout refuses if a tracked path already exists on
+   disk — that refusal is the safety, and it does not fire here because
+   nethub ignores `standup-guy/`, `nexus/` and `roadwork/`. Check:
+   `nethub/CLAUDE.md` exists.
+
+5. **The group, and your announcement under his key.** Standup Guy's
+   identity is already a member of the **Workspace Standup** group; you
+   speak there under his key until you have your own. Run `buzz` the way his
+   own scripts do — in a subshell that sources his environment file, so the
+   shell reads it and you never print it:
+   `sh -c 'set -a; . nethub/standup-guy/agent.env; set +a; buzz channels list'`
+   shows the group's id; post with `buzz messages send --channel <id>` the
+   same way. Announce this workspace's standup; the post's last line is
+   exactly:
+
+   `posted by the AIR of the <X> Workspace under Standup Guy's key during standup`
+
+   with `<X>` replaced by this workspace's name. From here on the checker
+   answers you in that group. Check: your announcement is visible in the
+   group.
+
+6. **The seed, copied in as a plain object.** Fetch the nexus seed from the
+   relay the same way as step 4, into a temporary folder; copy its tree —
+   without `.git` — into `nethub/nexus/`; delete the temporary folder. The
+   object is not a repository; it has no remote and no history. Check:
+   `nethub/nexus/CLAUDE.md` exists and holds a statement-of-authority
+   placeholder.
+
+7. **The work plans.** `git clone https://github.com/2ndcortex-labs/roadwork
+   nethub/roadwork` — a standup step, not a later command; the repository is
+   public, so no key is needed. Make it pull-only: set its push URL to a
+   refusing value so nothing here ever updates it. Check:
+   `nethub/roadwork/ordering.md` exists.
+
+8. **The connector's key, in the connector's own home.** Look first. Run this
+   block inside `nethub/nexus/cchbas/ccbra/`:
+
+```
+# run inside nethub/nexus/cchbas/ccbra/ — look first; nothing overwrites a key already here
+if [ -f nostr.key ]; then echo "key present - kept"; else (umask 077 && openssl rand -hex 32 > nostr.key) && echo "key made"; fi
+```
+
+   Then derive `pub.key` exactly as the connector construct's `README.md`
+   says. Every other agent's key is made the same way, in that agent's own
+   home, with the same look-first block; a key the Operator placed there is
+   used as it stands. The checker verifies this by look-first — it reads
+   whether a key exists, never the key. Check: each agent home holds its own
+   `nostr.key` and `pub.key`, and no pre-existing key changed.
+
+9. **Supervision.** Render the connector construct's four launchd templates,
+   `nethub/nexus/cchbas/ccbra/launchd/*.plist.template`, into
+   `nethub/nexus/cchbas/ccbra/launchd-rendered/` — the construct's `README.md`
+   gives every placeholder — and load them. Check: `launchctl print
+   gui/$(id -u)/<label>` shows each job running.
+
+10. **The commons.** Confirm it is readable through Standup Guy: after his
+    daily check, or an out-of-cycle refresh you ask him for,
+    `nethub/reference/repos/` holds `repo-sops` and
+    `buzz-agentic-architecture`. Check: both folders are present and
+    readable.
+
+11. **The statement, the charter, the beacon.** Fill the statement of
+    authority in `nethub/nexus/CLAUDE.md` with the repositories this
+    workspace holds the seat over. Fill `intent/intent.md` and
+    `plan/plan.md` — their placeholders say the instance is not stood up
+    while they remain. Then generate the root beacon: take the primitive's
+    template (Appendix C of `context/workspace-reorg.md` in the info store,
+    read from the commons at
+    `nethub/reference/repos/buzz-agentic-architecture/`) onto the workspace
+    root's `CLAUDE.md`, a position you first verify is empty of
+    hand-authored content. Check: none of the three placeholders
+    remains and the root beacon stands.
+
+12. **Report to the checker.** Tell the **Standup Conductor**, gate by gate,
+    in the **Workspace Standup** group. Give it your connector's `pub.key`
+    value; the conductor has Repo Man add your connector to the group. From
+    your first post under your own connector key — your announcement — you
+    speak as yourself, no longer under Standup Guy's key. Done means all
+    seven:
+
+    (a) you act on the relay under your own connector key — your first post
+        under it is your announcement;
+    (b) the connector survives a reboot — launchd relaunches it;
+    (c) the commons is readable through Standup Guy;
+    (d) the work plans are present;
+    (e) the statement of authority is filled and `intent/intent.md` and
+        `plan/plan.md` are not placeholders;
+    (f) the root beacon stands;
+    (g) `CLAUDE.local.md` is gone.
+
+13. **Remove this file.** Last, after the conductor certifies (a) through
+    (f): `rm nethub/nexus/CLAUDE.local.md`. Do not remove it earlier — you
+    need it until the last gate is certified. Its removal is (g), and (g) is
+    the conductor's last check.
+
+## A second owner
+
+a person who is not the conducting seat's Operator is admitted to the Workspace Standup group by that Operator, is certified by the same checker, and holds their workspace after
+
+Nothing here names any seat, so the same text serves every standup, whoever
+the owner is and whichever seat conducts.
