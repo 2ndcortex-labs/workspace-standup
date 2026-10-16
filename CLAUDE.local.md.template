@@ -18,7 +18,7 @@ Three standing rules for this whole file:
 Every path below is relative to the workspace root — the folder you were
 launched from is `nethub/nexus/`, so `cd` back up to the root first.
 
-Work the thirteen steps in order. Each one ends with its check. Do not move
+Work the fourteen steps in order. Each one ends with its check. Do not move
 on until the check passes.
 
 1. **The token and the owner name.** Ask the Operator for a fine-grained
@@ -92,10 +92,28 @@ git checkout -b main origin/main
 
 6. **The seed, copied in as a plain object.** Fetch the nexus seed from the
    relay the same way as step 4, into a temporary folder; copy its tree —
-   without `.git` — into `nethub/nexus/`; delete the temporary folder. The
-   object is not a repository; it has no remote and no history. Check:
-   `nethub/nexus/CLAUDE.md` exists and holds a statement-of-authority
-   placeholder.
+   without `.git` — into `nethub/nexus/`. Before deleting the temporary
+   folder, read its tip (`git -C <temp> rev-parse HEAD`) and write
+   `nethub/nexus/docs/history/<today>-seed-copied-into-the-object.md` —
+   the seed's version, recorded in the object where a reader finds it
+   without cloning — in this form, verbatim but for the angle-bracket
+   values:
+
+       # The seed copied into the object (<today>)
+
+       Seed: nexus@<the tip, forty hex characters>
+       Copied: <today>
+       By: the AIR of the <X> Workspace at standup
+       How: the seed's tree copied from the relay's nexus at this commit, without its git, by standup step 6
+
+       The commit is one of the seed repository `nexus` on the relay. In a workspace holding a clone of it (`nexus/` at the workspace root), `git -C nexus cat-file -t <commit>` prints `commit`.
+
+   Then delete the temporary folder. The object is not a repository; it
+   has no remote and no history. Check: `nethub/nexus/CLAUDE.md` exists
+   and holds a statement-of-authority placeholder, and
+   `nethub/nexus/docs/history/<today>-seed-copied-into-the-object.md`
+   exists with a `Seed:` line of `nexus@` followed by forty hex
+   characters.
 
 7. **The work plans.** `git clone https://github.com/2ndcortex-labs/roadwork
    nethub/roadwork` — a standup step, not a later command; the repository is
@@ -118,31 +136,70 @@ if [ -f nostr.key ]; then echo "key present - kept"; else (umask 077 && openssl 
    whether a key exists, never the key. Check: each agent home holds its own
    `nostr.key` and `pub.key`, and no pre-existing key changed.
 
-9. **Supervision.** Render the connector construct's four launchd templates,
-   `nethub/nexus/cchbas/ccbra/launchd/*.plist.template`, into
-   `nethub/nexus/cchbas/ccbra/launchd-rendered/` — the construct's `README.md`
-   gives every placeholder — and load them. Check: `launchctl print
-   gui/$(id -u)/<label>` shows each job running.
+9. **The connector's configuration.** The construct ships three forms; this
+   step fills them, inside `nethub/nexus/cchbas/ccbra/`. Copy
+   `agent.env.template` to `agent.env` with mode 600
+   (`cp agent.env.template agent.env && chmod 600 agent.env`) and fill every
+   double-underscore placeholder, each from the step that produced its
+   value, so you invent nothing: the private key's hex from step 8's
+   `nostr.key`, substituted by a tool that reads the file by path (a `sed`
+   whose replacement the shell takes from the file), never typed and never
+   printed; the relay's URL, the host of step 4's remote, as the app of
+   step 3 reaches it; the owner pubkey, Repo Man's, the 64 hex of step 4's
+   remote URL; the bound channel's uuid and name as the checker gives them
+   in the group (step 5); the connector's display name, `<X> CC-Connector`;
+   `BUZZ_WORKDIR` and `BUZZ_AGENT_DIR`, this folder's absolute path;
+   `PROJECT_DIR`, the served project — the first seated repository's clone
+   at the workspace root, cloned now if it is not there yet, since the
+   launcher refuses a path that is not a directory; the watchdog label the
+   construct's `README.md` gives the rendered plist; `CCHBA_ROLE=ccbra` and
+   `RUN_MODE=resident`; the three tier files by their absolute paths in this
+   home, the [System] one being the file made next; the allowed respond-to
+   floor `owner-only` and the allowlist of pubkeys that may task the
+   connector, as the checker gives them; the workspace's name, `<X>
+   Workspace`, as the Operator named it. Then copy
+   `docs/system-prompt.md.template` to `docs/<project-slug>-system-prompt.md`
+   (the slug: the served project's folder name) and write this instance's
+   rules over its placeholder — the launcher refuses to start without this
+   file. Then copy `PROJECT-FLOOR.md.template` to `PROJECT-FLOOR.md` and
+   write the project's binding rules for the connector over its
+   placeholder, or one sentence saying the project binds nothing beyond the
+   role file. Last, run `scripts/local-permissions.sh` once, as the
+   construct's `README.md` requires after `agent.env` is in place. Check:
+   `test -f agent.env -a -f PROJECT-FLOOR.md -a -f docs/<project-slug>-system-prompt.md`
+   succeeds, and `sh agent.sh --check` reports that the configuration
+   resolves, names this folder's `PROJECT-FLOOR.md` on its `floor:` line and
+   the [System] file on its `[System] rules` line, and prints no key.
 
-10. **The commons.** Confirm it is readable through Standup Guy: after his
+10. **Supervision.** Render the connector construct's four launchd templates,
+    `nethub/nexus/cchbas/ccbra/launchd/*.plist.template`, into
+    `nethub/nexus/cchbas/ccbra/launchd-rendered/` — the construct's `README.md`
+    gives every placeholder — and load them. Check: `launchctl print
+    gui/$(id -u)/<label>` shows each job running.
+
+11. **The commons.** Confirm it is readable through Standup Guy: after his
     daily check, or an out-of-cycle refresh you ask him for,
     `nethub/reference/repos/` holds `repo-sops` and
     `buzz-agentic-architecture`. Check: both folders are present and
     readable.
 
-11. **The statement, the charter, the beacon.** Fill the statement of
+12. **The statement, the charter, the beacon.** Fill the statement of
     authority in `nethub/nexus/CLAUDE.md` with the repositories this
-    workspace holds the seat over. Fill `intent/intent.md` and
+    workspace holds the seat over. Fill the stub line of the
+    `## Repos under the seat` section below it with one line per
+    repository, `- <name>` (the BAA Workspace's `nethub/nexus/CLAUDE.md`
+    shows the filled form), the five lines after it left as they are.
+    Fill `intent/intent.md` and
     `plan/plan.md` — their placeholders say the instance is not stood up
     while they remain. Then generate the root beacon: take the primitive's
     template (Appendix C of `context/workspace-reorg.md` in the info store,
     read from the commons at
     `nethub/reference/repos/buzz-agentic-architecture/`) onto the workspace
     root's `CLAUDE.md`, a position you first verify is empty of
-    hand-authored content. Check: none of the three placeholders
+    hand-authored content. Check: none of the four placeholders
     remains and the root beacon stands.
 
-12. **Report to the checker.** Tell the **Standup Conductor**, gate by gate,
+13. **Report to the checker.** Tell the **Standup Conductor**, gate by gate,
     in the **Workspace Standup** group. Give it your connector's `pub.key`
     value; the conductor has Repo Man add your connector to the group. From
     your first post under your own connector key — your announcement — you
@@ -159,7 +216,7 @@ if [ -f nostr.key ]; then echo "key present - kept"; else (umask 077 && openssl 
     (f) the root beacon stands;
     (g) `CLAUDE.local.md` is gone.
 
-13. **Remove this file.** Last, after the conductor certifies (a) through
+14. **Remove this file.** Last, after the conductor certifies (a) through
     (f): `rm nethub/nexus/CLAUDE.local.md`. Do not remove it earlier — you
     need it until the last gate is certified. Its removal is (g), and (g) is
     the conductor's last check.
