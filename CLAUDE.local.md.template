@@ -18,7 +18,7 @@ Three standing rules for this whole file:
 Every path below is relative to the workspace root — the folder you were
 launched from is `nethub/nexus/`, so `cd` back up to the root first.
 
-Work the fourteen steps in order. Each one ends with its check. Do not move
+Work the fifteen steps in order. Each one ends with its check. Do not move
 on until the check passes.
 
 1. **The token and the owner name.** Ask the Operator for a fine-grained
@@ -165,9 +165,9 @@ if [ -f nostr.key ]; then echo "key present - kept"; else (umask 077 && openssl 
    `bound channel:` line for the served project's repository, the first;
    the connector's display name, `<X> CC-Connector`;
    `BUZZ_WORKDIR` and `BUZZ_AGENT_DIR`, this folder's absolute path;
-   `PROJECT_DIR`, the served project — the first seated repository's clone
-   at the workspace root, cloned now if it is not there yet, since the
-   launcher refuses a path that is not a directory; the watchdog label the
+   `PROJECT_DIR`, the workspace root — the folder that holds `nethub/`, by
+   its absolute path, set once: the connector serves the workspace and
+   reads every seated repository by path; the watchdog label the
    construct's `README.md` gives the rendered plist; `CCHBA_ROLE=ccbra` and
    `RUN_MODE=resident`; the three tier files by their absolute paths in this
    home, the [System] one being the file made next; the allowed respond-to
@@ -177,15 +177,19 @@ if [ -f nostr.key ]; then echo "key present - kept"; else (umask 077 && openssl 
    `docs/system-prompt.md.template` to `docs/<project-slug>-system-prompt.md`
    (the slug: the served project's folder name) and write this instance's
    rules over its placeholder — the launcher refuses to start without this
-   file. Then copy `PROJECT-FLOOR.md.template` to `PROJECT-FLOOR.md` and
-   write the project's binding rules for the connector over its
-   placeholder, or one sentence saying the project binds nothing beyond the
-   role file. Last, run `scripts/local-permissions.sh` once, as the
-   construct's `README.md` requires after `agent.env` is in place. Check:
-   `test -f agent.env -a -f PROJECT-FLOOR.md -a -f docs/<project-slug>-system-prompt.md`
+   file. Then copy `PROJECT-FLOOR.md.template` to `PROJECT-FLOOR.md` at the
+   workspace root, beside the root beacon (step 12 generates the beacon
+   there) — the launcher takes the floor from `PROJECT_DIR`, and the
+   beacon is no floor — and write the project's binding rules for the
+   connector over its placeholder, or one sentence saying the project binds
+   nothing beyond the role file. Last, run `scripts/local-permissions.sh`
+   once, as the construct's `README.md` requires after `agent.env` is in
+   place. Check:
+   `test -f agent.env -a -f ../../../../PROJECT-FLOOR.md -a -f docs/<project-slug>-system-prompt.md`
    succeeds, and `sh agent.sh --check` reports that the configuration
-   resolves, names this folder's `PROJECT-FLOOR.md` on its `floor:` line and
-   the [System] file on its `[System] rules` line, and prints no key.
+   resolves, names the workspace root's `PROJECT-FLOOR.md` on its `floor:`
+   line and the [System] file on its `[System] rules` line, and prints no
+   key.
 
 10. **Supervision.** Render the connector construct's four launchd templates,
     `nethub/nexus/cchbas/ccbra/launchd/*.plist.template`, into
@@ -209,7 +213,7 @@ if [ -f nostr.key ]; then echo "key present - kept"; else (umask 077 && openssl 
     authority in `nethub/nexus/CLAUDE.md` with the repositories this
     workspace holds the seat over. Fill the stub line of the
     `## Repos under the seat` section below it with one line per
-    repository, `- <name>` (the BAA Workspace's `nethub/nexus/CLAUDE.md`
+    repository, `- <name>` (a stood-up workspace's `nethub/nexus/CLAUDE.md`
     shows the filled form), the five lines after it left as they are.
     Fill `intent/intent.md` and
     `plan/plan.md` — their placeholders say the instance is not stood up
@@ -238,7 +242,43 @@ if [ -f nostr.key ]; then echo "key present - kept"; else (umask 077 && openssl 
     (f) the root beacon stands;
     (g) `CLAUDE.local.md` is gone.
 
-14. **Remove this file.** Last, after the conductor certifies (a) through
+14. **The seat's repositories, cloned last.** Wait first for the
+    conductor's posts in the **Workspace Standup** group that read met for
+    (a) through (f); nothing in this step runs before them. Then clone, in
+    the statement's order, every repository the statement of authority in
+    `nethub/nexus/CLAUDE.md` names, except those marked `(temporary)` —
+    they are held only until their own seat stands up, and are not cloned
+    here. Each goes at the workspace root, beside `nethub/` and never inside
+    it, under its own name, through your own connector's key: the
+    credential helper of step 3 reading the connector's `nostr.key` by
+    path. From the workspace root, per repository, with `<url>` in step 4's
+    form, `<relay>/git/<owner pubkey>/<name>`, the relay and the owner
+    pubkey those of step 4's remote:
+
+```
+git -c credential.helper= -c credential.helper=/Applications/Buzz.app/Contents/MacOS/git-credential-nostr -c nostr.keyfile=nethub/nexus/cchbas/ccbra/nostr.key -c credential.useHttpPath=true clone <url> <name>
+```
+
+    The empty `credential.helper=` clears the helper of step 1, so only the
+    connector's key answers; the helper reads the key file by path, and the
+    key is never typed and never printed.
+    Standup Guy's key is never used for any of it.
+    Clone an empty repository — no content yet — too: `git clone` sets its
+    remote as for any other, and the check reads it back. A folder already
+    at `<name>` holding `.git` with that remote is kept as it stands; any
+    other folder at `<name>` stops the step — report it to the conductor in
+    the group and leave the folder as it is. Then post one line to the
+    conductor in the group, before (g):
+
+    `repositories cloned: <name>, <name>`
+
+    A clone that fails is named in that line as
+    `failed: <name> — <git's last line>`, and the step is not done until
+    every name clones. Check: for each name,
+    `test -d <name>/.git && git -C <name> remote get-url origin`
+    prints the remote.
+
+15. **Remove this file.** Last, after the conductor certifies (a) through
     (f): `rm nethub/nexus/CLAUDE.local.md`. Do not remove it earlier — you
     need it until the last gate is certified. Its removal is (g), and (g) is
     the conductor's last check.

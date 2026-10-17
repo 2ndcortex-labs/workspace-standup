@@ -7,10 +7,10 @@
 # instructions to nethub/nexus/CLAUDE.local.md from the template, prints the
 # launch line and stops. It clones nothing, asks for no secret, makes no relay
 # call, and never overwrites a CLAUDE.local.md that is already there.
-# The project repository, when there is one, is the subject clone at the
-# workspace root beside nethub/; the script looks only inside nethub/ and never
-# touches it, so a repository that already carries content is the same case as
-# an empty one.
+# The seat's repositories are cloned by the new AIR as its last standup step,
+# each a subject clone at the workspace root beside nethub/; the script looks
+# only inside nethub/ and never touches them, so a repository that already
+# carries content is the same case as an empty one.
 #
 # One-line usage:
 #   curl -fsSL https://raw.githubusercontent.com/2ndcortex-labs/workspace-standup/main/standup.sh | sh -s -- "<the workspace's name>"
