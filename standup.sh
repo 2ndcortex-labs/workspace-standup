@@ -13,16 +13,33 @@
 # an empty one.
 #
 # One-line usage:
+#   curl -fsSL https://raw.githubusercontent.com/2ndcortex-labs/workspace-standup/main/standup.sh | sh -s -- "<the workspace's name>"
 #   curl -fsSL https://raw.githubusercontent.com/2ndcortex-labs/workspace-standup/main/standup.sh | sh
+#     (the launch line then carries a placeholder)
 #
 # Exit codes:
 #   0  done — the instructions are written and the launch line is printed
 #   1  the folders are wrong (missing nethub/, missing or non-empty nexus/,
-#      or something other than nexus/ inside nethub/)
+#      or something other than nexus/ inside nethub/), or the name is unusable
+#      (it holds ", `, $ or \, or comes as more than one argument)
 #   2  nethub/nexus/CLAUDE.local.md already exists — nothing was touched
 #   3  an install or the template fetch failed
 
 set -u
+
+# --- the name: the optional argument, carried by the launch line -----------
+
+if [ $# -gt 1 ]; then
+	echo "standup: give the workspace's name as one argument, in quotes - nothing was changed" >&2
+	exit 1
+fi
+name="${1-}"
+case $name in
+*[\"\`\$\\]*)
+	echo "standup: the name may not hold \", \`, \$ or \\ - nothing was changed" >&2
+	exit 1
+	;;
+esac
 
 MIRROR_RAW="${STANDUP_MIRROR_RAW:-https://raw.githubusercontent.com/2ndcortex-labs/workspace-standup/main}"
 
@@ -104,5 +121,10 @@ else
 	}
 fi
 
-echo "cd nethub/nexus && claude"
+if [ -n "$name" ]; then
+	echo "cd nethub/nexus && claude --name \"$name\""
+else
+	echo "standup: put your workspace's name in place of <the workspace's name> before you run the line" >&2
+	echo "cd nethub/nexus && claude --name \"<the workspace's name>\""
+fi
 exit 0
