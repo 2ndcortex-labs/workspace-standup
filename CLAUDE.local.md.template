@@ -136,8 +136,23 @@ if [ -f nostr.key ]; then echo "key present - kept"; else (umask 077 && openssl 
    whether a key exists, never the key. Check: each agent home holds its own
    `nostr.key` and `pub.key`, and no pre-existing key changed.
 
+   Then ask the Operator for the seat's repositories — per repository its
+   identifier, its display name (given, never derived from the identifier),
+   a description, and its starter history (`no`, or a clone URL) — and post
+   them in the group under Standup Guy's key, as in step 5, with the
+   connector's `pub.key` value, one line each:
+
+   `repository: <REPO_ID> | <DISPLAY_NAME> | <DESCRIPTION> | <starter: no or clone URL>`
+
+   The conductor drafts from them the request the Operator sends Repo Man
+   from the owner DM, and answers with the lines step 9 fills from. Check:
+   the `repository:` lines and the `pub.key` value are visible in the group.
+
 9. **The connector's configuration.** The construct ships three forms; this
-   step fills them, inside `nethub/nexus/cchbas/ccbra/`. Copy
+   step fills them, inside `nethub/nexus/cchbas/ccbra/`. Wait first for the
+   conductor's post in the group of its `bound channel:` lines and its
+   `allowlist:` line, made once Repo Man has answered; nothing in this step
+   runs before that post. Copy
    `agent.env.template` to `agent.env` with mode 600
    (`cp agent.env.template agent.env && chmod 600 agent.env`) and fill every
    double-underscore placeholder, each from the step that produced its
@@ -146,8 +161,9 @@ if [ -f nostr.key ]; then echo "key present - kept"; else (umask 077 && openssl 
    whose replacement the shell takes from the file), never typed and never
    printed; the relay's URL, the host of step 4's remote, as the app of
    step 3 reaches it; the owner pubkey, Repo Man's, the 64 hex of step 4's
-   remote URL; the bound channel's uuid and name as the checker gives them
-   in the group (step 5); the connector's display name, `<X> CC-Connector`;
+   remote URL; the bound channel's uuid and name from the conductor's
+   `bound channel:` line for the served project's repository, the first;
+   the connector's display name, `<X> CC-Connector`;
    `BUZZ_WORKDIR` and `BUZZ_AGENT_DIR`, this folder's absolute path;
    `PROJECT_DIR`, the served project — the first seated repository's clone
    at the workspace root, cloned now if it is not there yet, since the
@@ -156,8 +172,8 @@ if [ -f nostr.key ]; then echo "key present - kept"; else (umask 077 && openssl 
    `RUN_MODE=resident`; the three tier files by their absolute paths in this
    home, the [System] one being the file made next; the allowed respond-to
    floor `owner-only` and the allowlist of pubkeys that may task the
-   connector, as the checker gives them; the workspace's name, `<X>
-   Workspace`, as the Operator named it. Then copy
+   connector, from the conductor's `allowlist:` line; the workspace's name,
+   `<X> Workspace`, as the Operator named it. Then copy
    `docs/system-prompt.md.template` to `docs/<project-slug>-system-prompt.md`
    (the slug: the served project's folder name) and write this instance's
    rules over its placeholder — the launcher refuses to start without this
