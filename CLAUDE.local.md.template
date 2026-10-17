@@ -193,11 +193,17 @@ if [ -f nostr.key ]; then echo "key present - kept"; else (umask 077 && openssl 
     gives every placeholder — and load them. Check: `launchctl print
     gui/$(id -u)/<label>` shows each job running.
 
-11. **The commons.** Confirm it is readable through Standup Guy: after his
-    daily check, or an out-of-cycle refresh you ask him for,
-    `nethub/reference/repos/` holds `repo-sops` and
-    `buzz-agentic-architecture`. Check: both folders are present and
-    readable.
+11. **The commons.** First install his daily wake: inside
+    `nethub/standup-guy/`, run the render-and-load block of
+    `ops/launchd/README.md` under bash — the README warns against a raw zsh
+    prompt — then run `bash scripts/daily-check.sh` once now, so the commons
+    arrives without waiting for the first wake. Then confirm it is readable
+    through Standup Guy: `nethub/reference/repos/` holds `repo-sops` and
+    `buzz-agentic-architecture`. Check: the README's verify line shows the
+    loaded plist's hour and minute as non-empty integers;
+    `launchctl list | grep standup-guy-daily` lists the job;
+    `logs/daily-check.log` records the run by hand; both folders are present
+    and readable.
 
 12. **The statement, the charter, the beacon.** Fill the statement of
     authority in `nethub/nexus/CLAUDE.md` with the repositories this
