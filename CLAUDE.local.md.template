@@ -281,7 +281,9 @@ git -c credential.helper= -c credential.helper=/Applications/Buzz.app/Contents/M
 15. **Remove this file.** Last, after the conductor certifies (a) through
     (f): `rm nethub/nexus/CLAUDE.local.md`. Do not remove it earlier — you
     need it until the last gate is certified. Its removal is (g), and (g) is
-    the conductor's last check.
+    the conductor's last check. After (g), the Operator cuts the key tray
+    `nethub/nexus/ccbra-keys/` to secure storage. The Operator also revokes
+    the standup token in GitHub's settings.
 
 ## A second owner
 
