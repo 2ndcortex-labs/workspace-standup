@@ -116,10 +116,10 @@ git checkout -b main origin/main
    characters.
 
 7. **The work plans.** `git clone https://github.com/2ndcortex-labs/roadwork
-   nethub/roadwork` — a standup step, not a later command; the repository is
+   nethub/nexus/roadwork` — a standup step, not a later command; the repository is
    public, so no key is needed. Make it pull-only: set its push URL to a
    refusing value so nothing here ever updates it. Check:
-   `nethub/roadwork/ordering.md` exists.
+   `nethub/nexus/roadwork/ordering.md` exists.
 
 8. **The connector's key, in the connector's own home.** Look first. Run this
    block inside `nethub/nexus/cchbas/ccbra/`:
